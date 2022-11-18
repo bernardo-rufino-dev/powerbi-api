@@ -3,6 +3,7 @@ import json
 import requests
 import pandas as pd
 from typing import Dict
+from utilities import create_directory
 
 
 class Workspace:
@@ -14,9 +15,9 @@ class Workspace:
         self.main_url = 'https://api.powerbi.com/v1.0/myorg'
         self.token = token
         self.headers = {'Authorization': f'Bearer {self.token}'}
+        self.data_dir = './data/workspaces'
 
-        if not os.path.exists('./data'):
-            os.makedirs('./data')
+        create_directory(self.workspace_dir)
 
 
     def list_workspace(
@@ -72,7 +73,7 @@ class Workspace:
         if status == 200:
             # Save to Excel file
             df = pd.DataFrame(response)
-            df.to_excel(f'./data/{filename}', index=False)
+            df.to_excel(f'{self.data_dir}/{filename}', index=False)
             
             return {'message': 'Success', 'content': response}
 
