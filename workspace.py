@@ -15,12 +15,17 @@ class Workspace:
         self.main_url = 'https://api.powerbi.com/v1.0/myorg'
         self.token = token
         self.headers = {'Authorization': f'Bearer {self.token}'}
-        self.data_dir = './data/workspaces'
 
-        create_directory(self.data_dir)
+        # Directories
+        self.workspace_dir = './data/workspaces'
+        self.users_dir = './data/users'
+        self.directories = [self.workspace_dir, self.users_dir]
+
+        for dir in self.directories:
+            create_directory(dir)
 
 
-    def list_workspace(
+    def list_workspaces(
                 self, 
                 workspace_id: str = '', 
                 workspace_name: str = '', 
@@ -73,7 +78,7 @@ class Workspace:
         if status == 200:
             # Save to Excel file
             df = pd.DataFrame(response)
-            df.to_excel(f'{self.data_dir}/{filename}', index=False)
+            df.to_excel(f'{self.workspace_dir}/{filename}', index=False)
             
             return {'message': 'Success', 'content': response}
 
@@ -83,6 +88,51 @@ class Workspace:
             error_message = response['error']['message']
 
             return {'message': {'error': error_message, 'content': response}}
+
+
+    def list_users(self, workspace_id: str = '') -> Dict:
+        """
+        List all users in a workspace_id that the user has access to.
+
+        Args:
+            workspace_id (str, optional): workspace id to search for.
+
+        Returns:
+            Dict: status message and content.
+        """
+        # Main URL
+        request_url = self.main_url + '/groups'
+
+        # If workspace ID was not informed, return error message...
+        if workspace_id == '':
+            return {'message': 'Missing workspace id, please check.', 'content': ''}
+
+        # If workspace ID was informed...
+        else:
+            request_url = f'{request_url}/{workspace_id}/users'
+            filename = f'users_{workspace_id}.xlsx'
+
+            # Make the request
+            r = requests.get(url=request_url, headers=self.headers)
+
+            # Get HTTP status and content
+            status = r.status_code
+            response = json.loads(r.content).get('value', '')
+
+            # If success...
+            if status == 200:
+                # Save to Excel file
+                df = pd.DataFrame(response)
+                df.to_excel(f'{self.users_dir}/{filename}', index=False)
+                
+                return {'message': 'Success', 'content': response}
+
+            else:                
+                # If any error happens, return message.
+                response = json.loads(r.content)
+                error_message = response['error']['message']
+
+                return {'message': {'error': error_message, 'content': response}}
 
 
     def add_user(
@@ -287,3 +337,7 @@ class Workspace:
             df.to_excel(f"./data/workspaces_{user.split('@')[0]}.xlsx", index=False)
 
             return df
+
+        else:
+
+            return pd.DataFrame([], columns=['id', 'name', 'status', 'error_message'])
