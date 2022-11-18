@@ -56,10 +56,10 @@ class Workspace:
         # Example: passing -> filters="contains(name,'Databrew')"
         # Filters for workspaces that contain Databrew on it's name.
         elif filters != '':
-            request_url = f'{request_url}/{workspace_id}/?$filter={filters}'
+            request_url = f'{request_url}/{workspace_id}?$filter={filters}'
             filename = 'workspaces_filtered.xlsx'
         else: 
-            return {'message': 'Success', 'content': response}
+            return {'message': 'Missing parameters, please check.', 'content': ''}
 
         # Make the request
         r = requests.get(url=request_url, headers=self.headers)
@@ -74,7 +74,7 @@ class Workspace:
             df = pd.DataFrame(response)
             df.to_excel(f'./data/{filename}', index=False)
             
-            return {'message': 'Success'}
+            return {'message': 'Success', 'content': response}
 
         else:                
             # If any error happens, return message.
