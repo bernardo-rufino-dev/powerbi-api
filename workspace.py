@@ -1,7 +1,8 @@
 import json
 import requests
 import pandas as pd
-from typing import Dict
+from pandas.core.frame import DataFrame
+from typing import Dict, List
 from utilities import create_directory
 
 
@@ -185,15 +186,16 @@ class Workspace:
 
             # Get HTTP status and content
             status = r.status_code
-            response = json.loads(r.content)
 
             # If success...
             if status == 200:
                 return {'message': 'Success'}
             
-            else:                
+            else:
+                
+                response = json.loads(r.content)                
                 # If any error happens, return message.
-                error_message = response['error']['message']
+                error_message = response['error']['code']
 
                 return {'message': {'error': error_message, 'content': response}}
 
@@ -239,3 +241,49 @@ class Workspace:
 
         else:
             return {'message': 'Missing parameters, please check.'}
+
+
+    def batch_update_user(self, user: str = '', workspaces_list: List[str] = []) -> DataFrame:
+        """
+        Batch update an user on a list of workspaces.
+
+        Args:
+            user (str): user e-mail or identifier of service principal.
+            workspaces_list (List[str]): list of workspaces to update an user.
+
+        Returns:
+            DataFrame: table with workspaces and status of the update.
+        """
+
+        responses = []
+
+        # If user and list of workspaces were informed...
+        if (user != '') & (workspaces_list != []):
+
+
+            for workspace in workspaces_list:
+                id = workspace.get('id', '')
+                name = workspace.get('name', '')
+                response = self.update_user(user_principal_name=user, workspace_id=id, access_right='Admin')
+
+                # Try to update the user
+                try:
+                    responses.append((id, name, 'Error', response['message']['content']))
+                except:
+                    responses.append((id, name, 'Success', ''))
+
+            # Create a dataframe with responses
+            df1 = pd.DataFrame(responses, columns=['id', 'name', 'status', 'error_message'])
+
+            # Serialize json from error message as a new dataframe
+            df2 = pd.json_normalize(df1['error_message'])
+
+            # Drop error message column and merge both dataframes
+            df1.drop(labels='error_message', axis='columns', inplace=True)
+            df = pd.merge(left=df1, right=df2, left_index=True, right_index=True)
+            df = df.fillna('')
+
+            # Save to an Excel file with user name
+            df.to_excel(f"./data/workspaces_{user.split('@')[0]}.xlsx", index=False)
+
+            return df
