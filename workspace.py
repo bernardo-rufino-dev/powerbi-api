@@ -16,7 +16,7 @@ class Workspace:
         self.headers = {'Authorization': f'Bearer {self.token}'}
         self.data_dir = './data/workspaces'
 
-        create_directory(self.workspace_dir)
+        create_directory(self.data_dir)
 
 
     def list_workspace(
