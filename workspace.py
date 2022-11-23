@@ -134,6 +134,51 @@ class Workspace:
 
                 return {'message': {'error': error_message, 'content': response}}
 
+        
+    def list_reports(self, workspace_id: str = '') -> Dict:
+        """
+        List all users in a workspace_id that the user has access to.
+
+        Args:
+            workspace_id (str, optional): workspace id to search for.
+
+        Returns:
+            Dict: status message and content.
+        """
+        # Main URL
+        request_url = self.main_url + '/groups'
+
+        # If workspace ID was not informed, return error message...
+        if workspace_id == '':
+            return {'message': 'Missing workspace id, please check.', 'content': ''}
+
+        # If workspace ID was informed...
+        else:
+            request_url = f'{request_url}/{workspace_id}/reports'
+            filename = f'users_{workspace_id}.xlsx'
+
+            # Make the request
+            r = requests.get(url=request_url, headers=self.headers)
+
+            # Get HTTP status and content
+            status = r.status_code
+            response = json.loads(r.content).get('value', '')
+
+            # If success...
+            if status == 200:
+                # Save to Excel file
+                df = pd.DataFrame(response)
+                df.to_excel(f'{self.users_dir}/{filename}', index=False)
+                
+                return {'message': 'Success', 'content': response}
+
+            else:                
+                # If any error happens, return message.
+                response = json.loads(r.content)
+                error_message = response['error']['message']
+
+                return {'message': {'error': error_message, 'content': response}}
+
 
     def add_user(
                 self, 
