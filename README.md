@@ -19,3 +19,24 @@ The objective of this project is to facilitate the interaction with the Power BI
     CLIENT_ID='<YOUR_CLIENT_ID>'
     CLIENT_SECRET='<YOUR_CLIENT_SECRET>'
     ```
+
+### Workspaces
+
+- List workspaces;
+- List users;
+- List reports;
+- Add user to workspace;
+- Update user role on workspace (individual or batch)
+- Remove user from the workspace;
+
+### Datasets
+
+- List datasets on a workspace;
+- Add user access rights to a specific dataset;
+- Update user access rights to a specific dataset;
+- Remove user access rights to a specific dataset;
+
+### Limitations
+
+- Power BI Rest API has a 200 requests per hour limit (you get blocked);
+- Not all users can be updated, check the documentation: [Get and update dataset permissions with APIs](https://learn.microsoft.com/en-us/power-bi/developer/embedded/datasets-permissions#get-and-update-dataset-permissions-with-apis);
